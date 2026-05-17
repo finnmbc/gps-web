@@ -21,55 +21,44 @@ function connect() {
 
         console.log("WebSocket verbunden");
 
+        // 🔥 INITIAL SYNC (wichtig!)
         navigator.geolocation.getCurrentPosition(pos => {
-
-            send(
-                pos.coords.latitude,
-                pos.coords.longitude
-            );
-
+            send(pos.coords.latitude, pos.coords.longitude);
         });
+
+        startTracking();
     };
 
     socket.onclose = () => {
 
         console.log("Reconnect...");
-
         setTimeout(connect, 2000);
     };
 }
 
-connect();
+function startTracking() {
 
-navigator.geolocation.watchPosition(
-
-    (pos) => {
-
-        send(
-            pos.coords.latitude,
-            pos.coords.longitude
-        );
-    },
-
-    (err) => console.log(err),
-
-    {
-        enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 5000
-    }
-);
+    navigator.geolocation.watchPosition(
+        (pos) => {
+            send(pos.coords.latitude, pos.coords.longitude);
+        },
+        (err) => console.log(err),
+        {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 5000
+        }
+    );
+}
 
 function send(lat, lon) {
 
-    if (!socket) return;
+    if (!socket || socket.readyState !== 1) return;
 
-    if (socket.readyState !== 1) return;
-
-    socket.send(
-        code + "|" + lat + "|" + lon
-    );
+    socket.send(code + "|" + lat + "|" + lon);
 }
+
+connect();
 
 </script>
 
