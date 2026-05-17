@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minecraft GPS</title>
+</head>
+<body>
+
+<h1>GPS verbunden</h1>
+
+<script>
+
+const code = prompt("GPS Code:");
+
+let socket;
+
+function connect() {
+
+    socket = new WebSocket("wss://gps-craft.onrender.com");
+
+    socket.onopen = () => {
+
+        console.log("WebSocket verbunden");
+
+        navigator.geolocation.getCurrentPosition(pos => {
+
+            send(
+                pos.coords.latitude,
+                pos.coords.longitude
+            );
+
+        });
+    };
+
+    socket.onclose = () => {
+
+        console.log("Reconnect...");
+
+        setTimeout(connect, 2000);
+    };
+}
+
+connect();
+
+navigator.geolocation.watchPosition(
+
+    (pos) => {
+
+        send(
+            pos.coords.latitude,
+            pos.coords.longitude
+        );
+    },
+
+    (err) => console.log(err),
+
+    {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 5000
+    }
+);
+
+function send(lat, lon) {
+
+    if (!socket) return;
+
+    if (socket.readyState !== 1) return;
+
+    socket.send(
+        code + "|" + lat + "|" + lon
+    );
+}
+
+</script>
+
+</body>
+</html>
